@@ -1,0 +1,70 @@
+<html>
+
+<head>
+    <title>Websocket Testpage</title>
+    <script type="text/javascript">
+        document.log = (message) => {
+            var logArea = document.getElementById('log-area');
+            if (logArea === 'undefined' || logArea === null) {
+                document.body.innerHTML = '<div id="log-area"></div>' + document.body.innerHTML;
+                var logArea = document.getElementById('log-area');
+            }
+            logArea.innerHTML = logArea.innerHTML + message + '<br>';
+        };
+
+        var WebSocketCommunicator = function (webSocketConnection) {
+            this.connection = webSocketConnection;
+        };
+
+        WebSocketCommunicator.prototype.SendToServer = function (func) {
+            if (this.connection.readyState === WebSocket.OPEN) {
+                alert(this.connection.readyState);
+                func('Hello Server from here');
+            }
+        }
+
+        WebSocketCommunicator.prototype.SendText = function (text) {
+            this.connection.send(text);
+        };
+
+        WebSocketCommunicator.prototype.SendJson = function (obj) {
+            this.connection.send(JSON.stringify(obj));
+        };
+    </script>
+</head>
+
+<body>
+
+    <script type="text/javascript">
+        (function () {
+            var webSocketConnection = new WebSocket('ws://localhost:1337');
+            var communicator = new WebSocketCommunicator(webSocketConnection);
+
+            webSocketConnection.onopen = function () {
+                document.log('Server connection established.');
+                document.log(webSocketConnection.readyState);
+
+                communicator.SendText('Hallo Server!!!');
+
+                communicator.SendJson({ headline: 'Json mit WebSockets', description: 'JSON' })
+            };
+
+            document.log(webSocketConnection.readyState);
+
+            webSocketConnection.onerror = function (error) {
+                document.log('Error occured on connection:' + error.message);
+            };
+
+            webSocketConnection.onmessage = function (message) {
+                document.log(message.data);
+                console.log(message);
+            };
+
+            communicator.SendToServer(communicator.SendText);
+
+        })();
+    </script>
+
+</body>
+
+</html>
